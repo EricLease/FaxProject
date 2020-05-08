@@ -15,71 +15,78 @@ namespace FaxProjectConsole
             => _AppDir ??
             (_AppDir = new DirectoryInfo(Environment.CurrentDirectory).Parent.Parent);
 
-        private string OutputDirectoryPath
-            => AppDir.EnumerateDirectories(OutputDirectory).FirstOrDefault()?.FullName ?? ".";
         private string MassagedOutputPathFormat =>
-            $"{OutputDirectoryPath}\\{OutputNameBase} {{0}}{MediaExtension}";
+            $"{OutputDirectory?.FullName ?? "."}\\{OutputNameBase} {{0}}{MediaExtension}";
 
-        private bool CoverSheetPresent { get; set; }
-        private string InputDirectory { get; set; }
-        private string OutputDirectory { get; set; }
+        private DirectoryInfo OutputDirectory { get; set; }
+        private IList<InputDocumentData> InputDocuments { get; set; }
         private string OutputNameBase { get; set; }
-        private int[][] Removals { get; set; }
-
-        private string[] FilePaths
-            => AppDir
-            .EnumerateDirectories(InputDirectory)
-            .FirstOrDefault()
-            ?.EnumerateFiles(PdfSearch)
-            .OrderBy(f => f.Name)
-            .Select(f => f.FullName)
-            .ToArray();
-
+        private InputDocumentData CoverSheet { get; set; }
+        private IEnumerable<FileInfo> SearchSpace { get; set; }
+        
         public MergeTool(
-            bool coverSheetPresent = false, 
             string inputDirectory = "input",
             string outputDirectory = "output",
             string outputNameBase = "merged",
-            int[][] removals = null)
+            IList<InputDocumentData> inputDocuments = null)
         {
-            CoverSheetPresent = coverSheetPresent;
-            InputDirectory = inputDirectory;
-            OutputDirectory = outputDirectory;
+            OutputDirectory = AppDir.EnumerateDirectories(outputDirectory).FirstOrDefault();
             OutputNameBase = outputNameBase;
-            Removals = (int[][])removals.Clone();
+            InputDocuments = new List<InputDocumentData>(inputDocuments)
+                .OrderBy(d => d.RelativeOrder)
+                .ToList();
+            CoverSheet = InputDocuments.FirstOrDefault(d => d.IsCoverSheet);
+            SearchSpace = AppDir
+                .EnumerateDirectories(inputDirectory)
+                .FirstOrDefault()
+                ?.EnumerateFiles(PdfSearch)
+                .Where(f => InputDocuments.Any(d => 
+                    string.Equals(
+                        f.Name, d.FileName + MediaExtension, 
+                        StringComparison.InvariantCultureIgnoreCase)))
+                ?? Enumerable.Empty<FileInfo>();
         }
 
-        internal void PrepareDocuments()
+        internal void Merge()
         {
             var done = false;
             var outputDocCount = 1;
-            var inputFileIdx = CoverSheetPresent ? 1 : 0;
-            var coverSheetPath = CoverSheetPresent ? FilePaths[0] : null;
+            var inputFileIdx = 0;
             var inputOffset = 0;
-
+            var workingSet = InputDocuments.Where(d => !d.IsCoverSheet).ToArray();
+            
             while (!done)
             {
                 using (var merged = new MergedDocument(
                     string.Format(MassagedOutputPathFormat, outputDocCount.ToString("00")),
-                    coverSheetPath))
+                    InputPath(CoverSheet?.FileName)))
                 {
                     AppendResult result;
 
                     do
                     {
-                        result = merged.AppendToOutput(
-                            FilePaths[inputFileIdx],
-                            inputOffset,
-                            Removals[inputFileIdx]);
+                        var inputDoc = workingSet[inputFileIdx];
+
+                        result = merged.Append(
+                            InputPath(inputDoc.FileName), inputOffset, inputDoc.ExcludedPages);
                         inputOffset = result.Offset;
 
                         if (result.Complete)
-                            done = ++inputFileIdx >= FilePaths.Length;
+                            done = ++inputFileIdx >= workingSet.Length;                      
                     } while (result.Complete && !done);
                 }
 
                 outputDocCount++;
             }
         }
+
+        private string InputPath(string fileName) 
+            => string.IsNullOrWhiteSpace(fileName)
+            ? null 
+            : SearchSpace.FirstOrDefault(f => 
+                string.Equals(
+                    f.Name, fileName + MediaExtension, 
+                    StringComparison.InvariantCultureIgnoreCase))
+                .FullName;
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using PdfSharp.Pdf;
 using PdfSharp.Pdf.IO;
@@ -81,13 +82,13 @@ namespace FaxProjectConsole
                     throw new ApplicationException(
                         $"Cover sheet's page count ({input.PageCount}) exceeds maximum page count ({MaxPageCount})");
 
-                if (!AppendToOutput(input).Complete)
+                if (!Append(input).Complete)
                     throw new ApplicationException(
                         $"Failed to add cover sheet to merged document");
             }
         }
 
-        internal AppendResult AppendToOutput(string inputFilePath, int inputOffset = 0, int[] removals = null)
+        internal AppendResult Append(string inputFilePath, int inputOffset = 0, IList<int> removals = null)
         {
             if (!inputFilePath.IsValidPdf())
             {
@@ -98,10 +99,10 @@ namespace FaxProjectConsole
             }
 
             using (var input = PdfReader.Open(inputFilePath, PdfDocumentOpenMode.Import))
-                return AppendToOutput(input, inputOffset, removals);
+                return Append(input, inputOffset, removals);
         }
 
-        private AppendResult AppendToOutput(PdfDocument input, int inputOffset = 0, int[] removals = null)
+        private AppendResult Append(PdfDocument input, int inputOffset = 0, IList<int> removals = null)
         {
             var remaining = MaxPageCount - PageCount;
             var inputPages = Enumerable

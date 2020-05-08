@@ -52,6 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppendResult.cs" />
+    <Compile Include="InputDocumentData.cs" />
     <Compile Include="MergedDocument.cs" />
     <Compile Include="MergeTool.cs" />
     <Compile Include="PdfExtensionMethods.cs" />
