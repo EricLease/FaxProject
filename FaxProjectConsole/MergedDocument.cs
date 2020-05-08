@@ -3,7 +3,7 @@ using System.Linq;
 using PdfSharp.Pdf;
 using PdfSharp.Pdf.IO;
 
-namespace TwilioFaxConsole
+namespace FaxProjectConsole
 {
     public class MergedDocument : IDisposable
     {

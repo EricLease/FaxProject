@@ -1,4 +1,4 @@
-﻿namespace TwilioFaxConsole
+﻿namespace FaxProjectConsole
 {
     internal class AppendResult
     {

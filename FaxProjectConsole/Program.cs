@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TwilioFaxConsole
+namespace FaxProjectConsole
 {
     class Program
     {        

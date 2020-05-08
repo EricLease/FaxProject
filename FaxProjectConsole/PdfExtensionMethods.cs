@@ -1,6 +1,6 @@
 ﻿using PdfSharp.Pdf.IO;
 
-namespace TwilioFaxConsole
+namespace FaxProjectConsole
 {
     internal static class PdfExtensionMethods
     {
