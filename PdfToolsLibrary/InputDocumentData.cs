@@ -1,15 +1,15 @@
 ﻿using System.Collections.Generic;
 
-namespace FaxProjectConsole
+namespace PdfToolsLibrary
 {
-    internal class InputDocumentData
+    public class InputDocumentData
     {
-        internal string FileName { get; private set; }
-        internal bool IsCoverSheet { get; private set; }
-        internal IList<int> ExcludedPages { get; private set; }
-        internal int RelativeOrder { get; set; }
+        public string FileName { get; private set; }
+        public bool IsCoverSheet { get; private set; }
+        public IList<int> ExcludedPages { get; private set; }
+        public int RelativeOrder { get; set; }
         
-        internal InputDocumentData(
+        public InputDocumentData(
             string fileName,
             bool isCoverSheet = false,
             IList<int> excludedPages = null, 

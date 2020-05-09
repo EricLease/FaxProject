@@ -1,10 +1,10 @@
 ﻿using PdfSharp.Pdf.IO;
 
-namespace FaxProjectConsole
+namespace PdfToolsLibrary
 {
-    internal static class PdfExtensionMethods
+    public static class PdfExtensionMethods
     {
-        internal static bool IsValidPdf(this string filePath)
+        public static bool IsValidPdf(this string filePath)
             => !string.IsNullOrWhiteSpace(filePath) && 
             PdfReader.TestPdfFile(filePath) != 0;
     }

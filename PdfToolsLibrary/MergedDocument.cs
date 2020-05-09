@@ -4,7 +4,7 @@ using System.Linq;
 using PdfSharp.Pdf;
 using PdfSharp.Pdf.IO;
 
-namespace FaxProjectConsole
+namespace PdfToolsLibrary
 {
     public class MergedDocument : IDisposable
     {
@@ -22,7 +22,10 @@ namespace FaxProjectConsole
         {
             OutputPath = outputPath;
             CoverSheetPath = coverSheetPath;
-            Init();
+            Document = OutputPath.IsValidPdf()
+                ? PdfReader.Open(OutputPath, PdfDocumentOpenMode.Import)
+                : new PdfDocument(OutputPath);
+            AddCoverSheet();
         }
 
         ~MergedDocument() => Dispose(false);
@@ -60,14 +63,6 @@ namespace FaxProjectConsole
             Document = null;
         }
 
-        private void Init()
-        {
-            Document = OutputPath.IsValidPdf()
-                ? PdfReader.Open(OutputPath, PdfDocumentOpenMode.Import)
-                : new PdfDocument(OutputPath);
-            AddCoverSheet();
-        }
-
         private void AddCoverSheet()
         {
             if (Document.IsImported || string.IsNullOrEmpty(CoverSheetPath)) return;
@@ -88,7 +83,7 @@ namespace FaxProjectConsole
             }
         }
 
-        internal AppendResult Append(string inputFilePath, int inputOffset = 0, IList<int> removals = null)
+        public AppendResult Append(string inputFilePath, int inputOffset = 0, IList<int> removals = null)
         {
             if (!inputFilePath.IsValidPdf())
             {
